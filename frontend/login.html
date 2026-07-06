@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PixelForge — Login / Register</title>
+  <meta name="description" content="Login or create your PixelForge account to chat with Nova AI assistant." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    .auth-page { display:flex; align-items:center; justify-content:center; height:100vh; position:relative; overflow:hidden; }
+    .auth-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 48px;
+      width: 460px;
+      position: relative;
+      z-index: 1;
+      box-shadow: var(--shadow), var(--glow-purple);
+      animation: fadeInUp 0.5s ease;
+    }
+    .auth-logo { display:flex; justify-content:center; margin-bottom:8px; }
+    .auth-brand { text-align:center; margin-bottom:32px; }
+    .auth-brand h1 {
+      font-family:'Syne',sans-serif; font-size:26px; font-weight:800;
+      background:linear-gradient(135deg,#fff,#a78bfa);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    .auth-brand p { font-size:13px; color:var(--text-muted); margin-top:6px; }
+
+    /* Tabs */
+    .auth-tabs { display:flex; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; padding:4px; margin-bottom:28px; gap:4px; }
+    .auth-tab {
+      flex:1; padding:10px; border:none; background:none;
+      color:var(--text-muted); font-family:'Inter',sans-serif; font-size:14px;
+      font-weight:500; border-radius:9px; cursor:pointer; transition:all 0.2s;
+    }
+    .auth-tab.active { background:linear-gradient(135deg,#7c3aed,#5b21b6); color:#fff; box-shadow:0 4px 12px rgba(124,58,237,0.3); }
+
+    /* Form */
+    .auth-form { display:flex; flex-direction:column; gap:16px; }
+    .form-group label { display:block; font-size:13px; font-weight:500; color:var(--text-secondary); margin-bottom:7px; }
+    .form-group input {
+      width:100%; padding:13px 16px;
+      background:rgba(255,255,255,0.04); border:1px solid var(--border);
+      border-radius:10px; color:var(--text-primary);
+      font-family:'Inter',sans-serif; font-size:14px; outline:none; transition:all 0.2s;
+    }
+    .form-group input:focus { border-color:var(--border-active); box-shadow:0 0 0 3px rgba(167,139,250,0.08); }
+    .form-group input::placeholder { color:var(--text-muted); }
+
+    /* Password toggle */
+    .input-wrap { position:relative; }
+    .input-wrap input { padding-right:44px; }
+    .toggle-pw {
+      position:absolute; right:14px; top:50%; transform:translateY(-50%);
+      background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:16px;
+    }
+
+    /* Submit */
+    .auth-submit {
+      width:100%; padding:14px;
+      background:linear-gradient(135deg,#7c3aed,#06b6d4);
+      border:none; border-radius:10px; color:#fff;
+      font-size:15px; font-weight:600; cursor:pointer;
+      font-family:'Inter',sans-serif; transition:all 0.25s;
+      box-shadow:0 4px 20px rgba(124,58,237,0.35);
+      margin-top:4px; display:flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .auth-submit:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(124,58,237,0.5); }
+    .auth-submit:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+
+    /* Messages */
+    .auth-error {
+      background:rgba(248,113,113,0.1); border:1px solid rgba(248,113,113,0.2);
+      color:#f87171; font-size:13px; padding:11px 14px; border-radius:9px; display:none;
+    }
+    .auth-success {
+      background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.2);
+      color:#10b981; font-size:13px; padding:11px 14px; border-radius:9px; display:none;
+    }
+
+    /* Divider */
+    .auth-divider { display:flex; align-items:center; gap:12px; margin:4px 0; }
+    .auth-divider span { font-size:12px; color:var(--text-muted); white-space:nowrap; }
+    .auth-divider::before,.auth-divider::after { content:''; flex:1; height:1px; background:var(--border); }
+
+    /* Skip link */
+    .auth-skip {
+      display:block; text-align:center; font-size:13px; color:var(--text-muted);
+      text-decoration:none; padding:10px;
+      border:1px solid var(--border); border-radius:10px;
+      transition:all 0.2s;
+    }
+    .auth-skip:hover { color:var(--text-secondary); border-color:rgba(255,255,255,0.12); }
+
+    .spinner { width:18px; height:18px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+  </style>
+</head>
+<body class="auth-page">
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+
+  <div class="auth-card">
+    <!-- Logo -->
+    <div class="auth-logo">
+      <svg width="44" height="44" viewBox="0 0 28 28" fill="none">
+        <polygon points="14,2 26,8 26,20 14,26 2,20 2,8" fill="url(#hg)" />
+        <defs><linearGradient id="hg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#a78bfa"/><stop offset="100%" stop-color="#06b6d4"/>
+        </linearGradient></defs>
+      </svg>
+    </div>
+    <div class="auth-brand">
+      <h1>PixelForge Agency</h1>
+      <p>Sign in to start chatting with Nova AI</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="loginTab" onclick="switchTab('login')">Login</button>
+      <button class="auth-tab" id="registerTab" onclick="switchTab('register')">Create Account</button>
+    </div>
+
+    <!-- Error / Success -->
+    <div class="auth-error" id="authError"></div>
+    <div class="auth-success" id="authSuccess"></div>
+
+    <!-- Login Form -->
+    <form class="auth-form" id="loginForm" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="loginEmail" placeholder="you@example.com" required />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <div class="input-wrap">
+          <input type="password" id="loginPassword" placeholder="Your password" required />
+          <button type="button" class="toggle-pw" onclick="togglePw('loginPassword', this)">👁</button>
+        </div>
+      </div>
+      <button class="auth-submit" type="submit" id="loginBtn">
+        <span>Login</span>
+      </button>
+    </form>
+
+    <!-- Register Form -->
+    <form class="auth-form" id="registerForm" style="display:none;" onsubmit="handleRegister(event)">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="regName" placeholder="Ali Hassan" required />
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="regEmail" placeholder="you@example.com" required />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <div class="input-wrap">
+          <input type="password" id="regPassword" placeholder="Min. 6 characters" required minlength="6" />
+          <button type="button" class="toggle-pw" onclick="togglePw('regPassword', this)">👁</button>
+        </div>
+      </div>
+      <button class="auth-submit" type="submit" id="registerBtn">
+        <span>Create Account</span>
+      </button>
+    </form>
+
+    <div class="auth-divider"><span>or</span></div>
+    <a href="index.html" class="auth-skip">Continue as Guest (No Account Needed)</a>
+  </div>
+
+  <script>
+    const API = 'http://localhost:3001/api';
+
+    // Check if already logged in
+    if (localStorage.getItem('clientToken')) {
+      window.location.href = 'index.html';
+    }
+
+    function switchTab(tab) {
+      hideMsg();
+      document.getElementById('loginForm').style.display    = tab === 'login'    ? 'flex' : 'none';
+      document.getElementById('registerForm').style.display = tab === 'register' ? 'flex' : 'none';
+      document.getElementById('loginTab').classList.toggle('active',    tab === 'login');
+      document.getElementById('registerTab').classList.toggle('active', tab === 'register');
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      hideMsg();
+      const btn = document.getElementById('loginBtn');
+      setLoading(btn, true);
+
+      try {
+        const res = await fetch(`${API}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: document.getElementById('loginEmail').value,
+            password: document.getElementById('loginPassword').value
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        localStorage.setItem('clientToken', data.token);
+        localStorage.setItem('clientUser', JSON.stringify(data.user));
+        showSuccess(`Welcome back, ${data.user.name}! Redirecting...`);
+        setTimeout(() => window.location.href = 'index.html', 1200);
+      } catch (err) {
+        showError(err.message || 'Login failed. Check your credentials.');
+      } finally { setLoading(btn, false); }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      hideMsg();
+      const btn = document.getElementById('registerBtn');
+      setLoading(btn, true);
+
+      try {
+        const res = await fetch(`${API}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: document.getElementById('regName').value,
+            email: document.getElementById('regEmail').value,
+            password: document.getElementById('regPassword').value
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        showSuccess('Account created! Please check your email to confirm, then login.');
+        setTimeout(() => switchTab('login'), 2500);
+      } catch (err) {
+        showError(err.message || 'Registration failed. Try again.');
+      } finally { setLoading(btn, false); }
+    }
+
+    function togglePw(id, btn) {
+      const inp = document.getElementById(id);
+      inp.type = inp.type === 'password' ? 'text' : 'password';
+      btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('authError');
+      el.textContent = '❌ ' + msg; el.style.display = 'block';
+    }
+    function showSuccess(msg) {
+      const el = document.getElementById('authSuccess');
+      el.textContent = '✅ ' + msg; el.style.display = 'block';
+    }
+    function hideMsg() {
+      document.getElementById('authError').style.display   = 'none';
+      document.getElementById('authSuccess').style.display = 'none';
+    }
+    function setLoading(btn, loading) {
+      btn.disabled = loading;
+      btn.innerHTML = loading
+        ? '<div class="spinner"></div>'
+        : `<span>${btn.id === 'loginBtn' ? 'Login' : 'Create Account'}</span>`;
+    }
+  </script>
+</body>
+</html>
