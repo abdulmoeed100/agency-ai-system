@@ -40,18 +40,18 @@ app.use(express.json({ limit: '10kb' }));
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // 100 requests per window
-  message: 'Too many requests from this IP, please try again later.'
+  handler: (req, res) => res.status(429).json({ error: 'Too many requests from this IP, please try again later.' })
 });
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5, // 5 login attempts per 15 min
   skipSuccessfulRequests: true,
-  message: 'Too many login attempts, please try again later.'
+  handler: (req, res) => res.status(429).json({ error: 'Too many login attempts, please try again later.' })
 });
 const chatLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 10, // 10 messages per minute
-  message: 'Messaging rate limited. Please wait before sending another message.'
+  handler: (req, res) => res.status(429).json({ error: 'Messaging rate limited. Please wait before sending another message.' })
 });
 
 app.use('/api/', limiter);
@@ -66,6 +66,7 @@ const supabase = createClient(
 
 // ─── Groq Client ──────────────────────────────────────────────────────────
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 
 // ─── JWT Secret ───────────────────────────────────────────────────────────
 const JWT_SECRET = process.env.JWT_SECRET || 'pixelforge-super-secret-key-change-in-production';
@@ -318,7 +319,7 @@ app.post('/api/chat/message', async (req, res) => {
     ];
 
     const completion = await groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
+      model: GROQ_MODEL,
       messages,
       max_tokens: 500,
       temperature: 0.7
